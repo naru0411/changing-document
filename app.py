@@ -211,6 +211,23 @@ if not _check_pandoc():
     st.stop()
 
 # ──────────────────────────────────────────────
+# サイドバー: 言語設定
+# ──────────────────────────────────────────────
+with st.sidebar:
+    st.markdown("### ⚙️ 設定")
+    st.markdown("---")
+    lang = st.radio(
+        "🌐 言語設定（Language Setting）",
+        options=["日本語", "English"],
+        index=0,
+        help="日本語: ltjsarticle クラスで出力\nEnglish: article クラス（標準）で出力",
+    )
+    if lang == "日本語":
+        st.info("📝 `ltjsarticle` + `unicode` オプションで出力します")
+    else:
+        st.info("📝 標準の `article` クラスで出力します")
+
+# ──────────────────────────────────────────────
 # ファイルアップロード
 # ──────────────────────────────────────────────
 st.markdown("---")
@@ -227,6 +244,7 @@ uploaded_file = st.file_uploader(
 def convert_docx_to_latex(
     docx_bytes: bytes,
     filename: str,
+    lang: str = "日本語",
 ) -> tuple[str, bytes]:
     """
     .docx → .tex 変換を行い、tex テキストと zip バイト列を返す。
@@ -237,6 +255,8 @@ def convert_docx_to_latex(
         アップロードされた docx のバイナリ。
     filename : str
         元のファイル名（拡張子付き）。
+    lang : str
+        言語設定。"日本語" または "English"。
 
     Returns
     -------
@@ -264,6 +284,13 @@ def convert_docx_to_latex(
             f"--extract-media={tmpdir}",
             "--mathml",
         ]
+
+        # ── 言語別オプション ──
+        if lang == "日本語":
+            cmd.extend([
+                "-V", "documentclass=ltjsarticle",
+                "-V", "classoption=unicode",
+            ])
 
         result = subprocess.run(
             cmd,
@@ -320,6 +347,7 @@ if uploaded_file is not None:
                 tex_content, zip_bytes = convert_docx_to_latex(
                     uploaded_file.getvalue(),
                     uploaded_file.name,
+                    lang=lang,
                 )
             except RuntimeError as e:
                 st.error(str(e))
