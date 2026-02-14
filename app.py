@@ -287,9 +287,14 @@ def convert_docx_to_latex(
 
         # ── 言語別オプション ──
         if lang == "日本語":
+            # ヘッダーファイルで luatexja を明示的に追加
+            header_path = os.path.join(tmpdir, "header.tex")
+            with open(header_path, "w", encoding="utf-8") as hf:
+                hf.write("\\usepackage{luatexja}\n")
             cmd.extend([
                 "-V", "documentclass=ltjsarticle",
                 "-V", "classoption=unicode",
+                "-H", header_path,
             ])
 
         result = subprocess.run(
